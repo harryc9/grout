@@ -57,5 +57,5 @@ export type ConversationResult = {
   transcript: TranscriptTurn[]
   toolCalls: RecordedToolCall[]
   turnCount: number
-  endedByTool: boolean
+  endedNaturally: boolean
 }

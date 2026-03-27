@@ -223,7 +223,7 @@ export async function runConversation(scenario: TestScenario): Promise<Conversat
   const transcript: TranscriptTurn[] = []
   const allToolCalls: RecordedToolCall[] = []
   let previousChatId: string | undefined
-  let endedByTool = false
+  let endedNaturally = false
 
   const log = (msg: string) => console.log(`  [${scenario.name}] ${msg}`)
 
@@ -308,7 +308,7 @@ export async function runConversation(scenario: TestScenario): Promise<Conversat
 
     if (callerSaidBye || assistantSaidBye) {
       log('✓ Conversation ended naturally')
-      endedByTool = true
+      endedNaturally = true
       break
     }
   }
@@ -319,6 +319,6 @@ export async function runConversation(scenario: TestScenario): Promise<Conversat
     transcript,
     toolCalls: allToolCalls,
     turnCount: transcript.filter((t) => t.role === 'user').length,
-    endedByTool,
+    endedNaturally,
   }
 }

@@ -25,11 +25,25 @@ async function generatePronunciation(name: string): Promise<string> {
   }
 }
 
+// Best-effort in-memory rate limit — resets on serverless cold starts.
+// For production use, replace with Redis or an edge-based limiter.
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
 const RATE_LIMIT_MAX = 10
 const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000
+let lastPruneAt = 0
+const PRUNE_INTERVAL_MS = 5 * 60 * 1000
+
+function pruneExpiredEntries() {
+  const now = Date.now()
+  if (now - lastPruneAt < PRUNE_INTERVAL_MS) return
+  lastPruneAt = now
+  for (const [key, entry] of rateLimitMap) {
+    if (now > entry.resetAt) rateLimitMap.delete(key)
+  }
+}
 
 function isRateLimited(ip: string): boolean {
+  pruneExpiredEntries()
   const now = Date.now()
   const entry = rateLimitMap.get(ip)
 
@@ -42,14 +56,29 @@ function isRateLimited(ip: string): boolean {
   return entry.count > RATE_LIMIT_MAX
 }
 
+function isPrivateHostname(hostname: string): boolean {
+  if (hostname === 'localhost' || hostname === '0.0.0.0' || hostname.endsWith('.local')) return true
+
+  // IPv6 loopback — raw or bracketed
+  const bare = hostname.replace(/^\[|\]$/g, '')
+  if (bare === '::1' || bare === '0:0:0:0:0:0:0:1') return true
+
+  // IPv4 private/reserved ranges
+  if (hostname.startsWith('127.') || hostname.startsWith('10.') || hostname.startsWith('192.168.')) return true
+  if (hostname.startsWith('169.254.')) return true
+  if (hostname.startsWith('172.')) {
+    const second = parseInt(hostname.split('.')[1], 10)
+    if (second >= 16 && second <= 31) return true
+  }
+
+  return false
+}
+
 function isValidUrl(url: string): boolean {
   try {
     const parsed = new URL(url)
     if (!['http:', 'https:'].includes(parsed.protocol)) return false
-    const hostname = parsed.hostname.toLowerCase()
-    if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '0.0.0.0') return false
-    if (hostname.endsWith('.local') || hostname.startsWith('192.168.') || hostname.startsWith('10.')) return false
-    return true
+    return !isPrivateHostname(parsed.hostname.toLowerCase())
   } catch {
     return false
   }
