@@ -51,7 +51,7 @@ Typography-first, extreme minimalism. Let the words do the work. Every element m
 - **No gradients** on surfaces
 - **No decorative elements** — no icon containers with colored backgrounds, no badge pills for labels. Use plain text instead.
 - **Borders**: `border-gray-100` for subtle dividers, `border-gray-200` for card borders
-- **Rounded corners**: `rounded-full` for CTAs/pills, `rounded-2xl` for cards/containers, `rounded-lg` for smaller elements
+- **Rounded corners**: `rounded-lg` for CTAs/buttons, `rounded-2xl` for cards/containers, `rounded-lg` for smaller elements
 
 ## Spacing
 
@@ -65,7 +65,7 @@ Typography-first, extreme minimalism. Let the words do the work. Every element m
 
 ### Buttons
 
-- Primary CTA: `bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-8`
+- Primary CTA: `bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg px-8`
 - Secondary: `bg-gray-900 hover:bg-gray-800 text-white`
 - Use `isLoading` prop, never `disabled`
 - Icons inside `<Button>` need NO margin — button has `gap-2`
@@ -87,7 +87,7 @@ Typography-first, extreme minimalism. Let the words do the work. Every element m
 - `bg-[#fafafa]/80 backdrop-blur-sm sticky top-0 z-50`
 - Logo: icon + text, no background container on the icon
 - Minimal links — only what's essential
-- One CTA button: `rounded-full`
+- One CTA button: `rounded-lg`
 
 ### Footer
 

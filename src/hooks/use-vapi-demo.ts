@@ -44,6 +44,14 @@ export function useVapiDemo() {
   const callStartTimeRef = useRef<number>(0)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
+  const stopVapi = useCallback(() => {
+    if (vapiRef.current) {
+      vapiRef.current.stop()
+      vapiRef.current.removeAllListeners()
+      vapiRef.current = null
+    }
+  }, [])
+
   const cleanup = useCallback(() => {
     if (timerRef.current) {
       clearInterval(timerRef.current)
@@ -54,13 +62,9 @@ export function useVapiDemo() {
   useEffect(() => {
     return () => {
       cleanup()
-      if (vapiRef.current) {
-        vapiRef.current.stop()
-        vapiRef.current.removeAllListeners()
-        vapiRef.current = null
-      }
+      stopVapi()
     }
-  }, [cleanup])
+  }, [cleanup, stopVapi])
 
   const startCall = useCallback(async (business: ScrapedBusiness) => {
     const publicKey = process.env.NEXT_PUBLIC_VAPI_PUBLIC_KEY
@@ -76,6 +80,8 @@ export function useVapiDemo() {
     setCallDuration(0)
 
     try {
+      stopVapi()
+
       const VapiSDK = (await import('@vapi-ai/web')).default
       const vapi = new VapiSDK(publicKey)
       vapiRef.current = vapi
@@ -122,7 +128,7 @@ export function useVapiDemo() {
       setError('Failed to start the demo call. Please check your microphone permissions.')
       setCallState('idle')
     }
-  }, [cleanup])
+  }, [cleanup, stopVapi])
 
   const handleVapiMessage = useCallback((message: Record<string, unknown>) => {
     const type = message.type as string
@@ -232,6 +238,8 @@ export function useVapiDemo() {
   }, [isMuted])
 
   const resetDemo = useCallback(() => {
+    cleanup()
+    stopVapi()
     setCallState('idle')
     setTranscript([])
     setActionCards([])
@@ -239,7 +247,7 @@ export function useVapiDemo() {
     setCallDuration(0)
     setVolumeLevel(0)
     setIsMuted(false)
-  }, [])
+  }, [cleanup, stopVapi])
 
   return {
     callState,

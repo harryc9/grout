@@ -99,7 +99,7 @@ export function DemoPanel() {
   }, [resetDemo])
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+    <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
       {/* Header */}
       <div className="px-5 py-3 border-b border-gray-50 flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -132,10 +132,10 @@ export function DemoPanel() {
           <div className="space-y-4">
             <div className="text-center space-y-2 py-4">
               <div className="mx-auto w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center">
-                <Phone className="h-5 w-5 text-gray-300" />
+                <Phone className="h-5 w-5 text-gray-400" />
               </div>
               <p className="text-sm text-gray-500">
-                Paste your business website to try a personalized AI agent demo
+                Paste your URL to talk to your new AI receptionist
               </p>
             </div>
             <UrlInput
@@ -184,7 +184,7 @@ export function DemoPanel() {
               <Button
                 size="lg"
                 onClick={handleStartCall}
-                className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-8 gap-2"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg px-8 gap-2"
               >
                 <Phone className="h-4 w-4" />
                 Start Demo Call
@@ -239,7 +239,7 @@ export function DemoPanel() {
             <div className="text-center space-y-3 pt-2">
               <Button
                 size="lg"
-                className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-8 gap-2"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg px-8 gap-2"
                 onClick={() =>
                   document
                     .getElementById('pricing')

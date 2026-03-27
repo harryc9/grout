@@ -7,6 +7,16 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import { DemoPanel } from '@/components/demo/demo-panel'
 import { Separator } from '@/components/ui/separator'
 import { Logo } from '@/components/icons/logo'
@@ -14,8 +24,108 @@ import {
   ArrowRight,
   Check,
 } from 'lucide-react'
+import { useState, type FormEvent } from 'react'
+import { toast } from 'sonner'
 
-function PricingCard() {
+function WaitlistDialog({
+  open,
+  onOpenChange,
+}: {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+}) {
+  const [email, setEmail] = useState('')
+  const [notes, setNotes] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault()
+    setIsLoading(true)
+
+    try {
+      const res = await fetch('/api/waitlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, notes: notes || undefined }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        toast.error(data.error ?? 'Something went wrong')
+        return
+      }
+
+      if (data.duplicate) {
+        toast("You're already on the list!")
+      } else {
+        toast.success("You're on the list!")
+      }
+
+      setEmail('')
+      setNotes('')
+      onOpenChange(false)
+    } catch {
+      toast.error('Something went wrong. Please try again.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md bg-[#fafafa] font-sans">
+        <DialogHeader>
+          <DialogTitle className="font-semibold text-xl text-gray-900">
+            Join the waitlist
+          </DialogTitle>
+          <DialogDescription className="text-gray-400">
+            Be the first to know when Grout launches.
+          </DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4 pt-2">
+          <div className="space-y-2">
+            <Label htmlFor="waitlist-email" className="text-gray-600">
+              Email
+            </Label>
+            <Input
+              id="waitlist-email"
+              type="email"
+              placeholder="you@company.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="h-11 rounded-lg"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="waitlist-notes" className="text-gray-600">
+              What would you want most from a product like this?{' '}
+              <span className="text-gray-300 font-normal">(optional)</span>
+            </Label>
+            <Textarea
+              id="waitlist-notes"
+              placeholder="e.g. integration with my CRM, Spanish-speaking agent, appointment scheduling..."
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={3}
+              className="rounded-lg resize-none"
+            />
+          </div>
+          <Button
+            type="submit"
+            className="w-full h-11 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground"
+            disabled={isLoading}
+          >
+            {isLoading ? 'Joining...' : 'Join waitlist'}
+          </Button>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+function PricingCard({ onJoinWaitlist }: { onJoinWaitlist: () => void }) {
   const rates = [
     { label: 'Call minutes', rate: '$0.25/min' },
     { label: 'Local phone number', rate: '$5/mo' },
@@ -62,13 +172,14 @@ function PricingCard() {
           ))}
         </ul>
         <Button
+          onClick={onJoinWaitlist}
           className="w-full mt-8 bg-primary hover:bg-primary/90 text-primary-foreground"
           size="lg"
         >
-          Get Started Free
+          Join waitlist
         </Button>
         <p className="text-xs text-center text-gray-400 mt-3">
-          Credit card required on signup
+          No credit card required
         </p>
       </CardContent>
     </Card>
@@ -76,6 +187,8 @@ function PricingCard() {
 }
 
 export function Landing() {
+  const [waitlistOpen, setWaitlistOpen] = useState(false)
+
   return (
     <div className="min-h-screen bg-[#fafafa] font-sans">
       {/* Nav */}
@@ -96,9 +209,10 @@ export function Landing() {
             </a>
             <Button
               size="sm"
-              className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-5"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg px-5"
+              onClick={() => setWaitlistOpen(true)}
             >
-              Get Early Access
+              Join waitlist
             </Button>
           </div>
         </div>
@@ -128,14 +242,10 @@ export function Landing() {
               <div className="flex items-center gap-4">
                 <Button
                   size="lg"
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground text-base rounded-full px-8 gap-2"
-                  onClick={() =>
-                    document
-                      .getElementById('pricing')
-                      ?.scrollIntoView({ behavior: 'smooth' })
-                  }
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground text-base rounded-lg px-8 gap-2"
+                  onClick={() => setWaitlistOpen(true)}
                 >
-                  Get Early Access
+                  Join waitlist
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               </div>
@@ -169,7 +279,7 @@ export function Landing() {
             </p>
           </div>
 
-          <PricingCard />
+          <PricingCard onJoinWaitlist={() => setWaitlistOpen(true)} />
         </div>
       </section>
 
@@ -185,6 +295,8 @@ export function Landing() {
           </p>
         </div>
       </footer>
+
+      <WaitlistDialog open={waitlistOpen} onOpenChange={setWaitlistOpen} />
     </div>
   )
 }

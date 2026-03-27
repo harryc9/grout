@@ -1,6 +1,7 @@
 import { AuthProvider } from '@/context/auth-provider'
 import type { Metadata } from 'next'
 import { DM_Sans, Lora } from 'next/font/google'
+import { Toaster } from 'sonner'
 import './globals.css'
 
 const dmSans = DM_Sans({
@@ -55,6 +56,7 @@ export default function RootLayout({
       >
         <AuthProvider>
           {children}
+          <Toaster position="top-center" />
         </AuthProvider>
       </body>
     </html>
