@@ -3,6 +3,7 @@
  * No authentication required — collects email + optional notes.
  * IP-based rate limiting to prevent spam (in-memory, resets on cold start).
  */
+import { createRateLimiter } from '@/lib/rate-limit'
 import { sb } from '@lib/supabase'
 import { NextResponse, type NextRequest } from 'next/server'
 import { z } from 'zod'
@@ -12,22 +13,10 @@ const waitlistSchema = z.object({
   notes: z.string().max(2000).optional(),
 })
 
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
-const RATE_LIMIT_MAX = 5
-const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000
-
-function isRateLimited(ip: string): boolean {
-  const now = Date.now()
-  const entry = rateLimitMap.get(ip)
-
-  if (!entry || now > entry.resetAt) {
-    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS })
-    return false
-  }
-
-  entry.count++
-  return entry.count > RATE_LIMIT_MAX
-}
+const isRateLimited = createRateLimiter({
+  maxRequests: 5,
+  windowMs: 60 * 60 * 1000,
+})
 
 export async function POST(request: NextRequest) {
   const ip =

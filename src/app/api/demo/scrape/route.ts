@@ -2,6 +2,7 @@
  * Demo scrape endpoint — accepts a business URL, scrapes it via Firecrawl,
  * and returns structured business info for the Vapi demo assistant.
  */
+import { createRateLimiter } from '@/lib/rate-limit'
 import { openai } from '@ai-sdk/openai'
 import Firecrawl from '@mendable/firecrawl-js'
 import { generateText } from 'ai'
@@ -25,36 +26,10 @@ async function generatePronunciation(name: string): Promise<string> {
   }
 }
 
-// Best-effort in-memory rate limit — resets on serverless cold starts.
-// For production use, replace with Redis or an edge-based limiter.
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
-const RATE_LIMIT_MAX = 10
-const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000
-let lastPruneAt = 0
-const PRUNE_INTERVAL_MS = 5 * 60 * 1000
-
-function pruneExpiredEntries() {
-  const now = Date.now()
-  if (now - lastPruneAt < PRUNE_INTERVAL_MS) return
-  lastPruneAt = now
-  for (const [key, entry] of rateLimitMap) {
-    if (now > entry.resetAt) rateLimitMap.delete(key)
-  }
-}
-
-function isRateLimited(ip: string): boolean {
-  pruneExpiredEntries()
-  const now = Date.now()
-  const entry = rateLimitMap.get(ip)
-
-  if (!entry || now > entry.resetAt) {
-    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS })
-    return false
-  }
-
-  entry.count++
-  return entry.count > RATE_LIMIT_MAX
-}
+const isRateLimited = createRateLimiter({
+  maxRequests: 10,
+  windowMs: 60 * 60 * 1000,
+})
 
 function isPrivateHostname(hostname: string): boolean {
   if (hostname === 'localhost' || hostname === '0.0.0.0' || hostname.endsWith('.local')) return true
