@@ -44,6 +44,7 @@ export function useVapiDemo() {
   const [callDuration, setCallDuration] = useState(0)
   const callStartTimeRef = useRef<number>(0)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const callEndedNormallyRef = useRef(false)
 
   const stopVapi = useCallback(() => {
     if (vapiRef.current) {
@@ -79,6 +80,7 @@ export function useVapiDemo() {
     setTranscript([])
     setActionCards([])
     setCallDuration(0)
+    callEndedNormallyRef.current = false
 
     try {
       stopVapi()
@@ -96,6 +98,7 @@ export function useVapiDemo() {
       })
 
       vapi.on('call-end', () => {
+        callEndedNormallyRef.current = true
         setCallState('ended')
         cleanup()
       })
@@ -105,9 +108,14 @@ export function useVapiDemo() {
       })
 
       vapi.on('error', (err: unknown) => {
+        if (callEndedNormallyRef.current) return
+
+        const e = err as Record<string, unknown>
+        const nested = e?.error as Record<string, unknown> | undefined
         const errorMsg =
-          (err as { errorMsg?: string })?.errorMsg ??
-          (err as { error?: { msg?: string } })?.error?.msg ??
+          (e?.errorMsg as string) ??
+          (nested?.errorMsg as string) ??
+          (nested?.msg as string) ??
           ''
 
         if (errorMsg === 'Meeting has ended') return
@@ -241,6 +249,7 @@ export function useVapiDemo() {
   const resetDemo = useCallback(() => {
     cleanup()
     stopVapi()
+    callEndedNormallyRef.current = false
     setCallState('idle')
     setTranscript([])
     setActionCards([])
