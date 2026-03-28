@@ -3,6 +3,8 @@
  * Resets on serverless cold starts — for production, replace with Redis or edge-based limiter.
  */
 
+import { DateTime } from 'luxon'
+
 type RateLimitEntry = { count: number; resetAt: number }
 
 type RateLimiterOptions = {
@@ -20,7 +22,7 @@ export function createRateLimiter({
   let lastPruneAt = 0
 
   function prune() {
-    const now = Date.now()
+    const now = DateTime.now().toMillis()
     if (now - lastPruneAt < pruneIntervalMs) return
     lastPruneAt = now
     for (const [key, entry] of map) {
@@ -30,7 +32,7 @@ export function createRateLimiter({
 
   return function isRateLimited(ip: string): boolean {
     prune()
-    const now = Date.now()
+    const now = DateTime.now().toMillis()
     const entry = map.get(ip)
 
     if (!entry || now > entry.resetAt) {

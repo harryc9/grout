@@ -1,5 +1,6 @@
 'use client'
 
+import { DateTime } from 'luxon'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -291,7 +292,7 @@ export function Landing() {
             <span className="font-medium text-sm text-gray-400">Grout</span>
           </div>
           <p className="text-sm text-gray-300">
-            &copy; {new Date().getFullYear()} Grout
+            &copy; {DateTime.now().year} Grout
           </p>
         </div>
       </footer>

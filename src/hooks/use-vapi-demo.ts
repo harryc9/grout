@@ -5,6 +5,7 @@
 'use client'
 
 import { buildTransientAssistant } from '@/lib/demo/build-assistant'
+import { DateTime } from 'luxon'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 export type DemoState = 'idle' | 'connecting' | 'active' | 'ended'
@@ -88,9 +89,9 @@ export function useVapiDemo() {
 
       vapi.on('call-start', () => {
         setCallState('active')
-        callStartTimeRef.current = Date.now()
+        callStartTimeRef.current = DateTime.now().toMillis()
         timerRef.current = setInterval(() => {
-          setCallDuration(Math.floor((Date.now() - callStartTimeRef.current) / 1000))
+          setCallDuration(Math.floor((DateTime.now().toMillis() - callStartTimeRef.current) / 1000))
         }, 1000)
       })
 
@@ -157,10 +158,10 @@ export function useVapiDemo() {
           return [
             ...prev,
             {
-              id: `t-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+              id: `t-${DateTime.now().toMillis()}-${Math.random().toString(36).slice(2, 6)}`,
               role: entryRole,
               text,
-              timestamp: Date.now(),
+              timestamp: DateTime.now().toMillis(),
               isFinal: false,
             },
           ]
@@ -174,10 +175,10 @@ export function useVapiDemo() {
         return [
           ...prev,
           {
-            id: `t-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+            id: `t-${DateTime.now().toMillis()}-${Math.random().toString(36).slice(2, 6)}`,
             role: entryRole,
             text,
-            timestamp: Date.now(),
+            timestamp: DateTime.now().toMillis(),
             isFinal: true,
           },
         ]
@@ -205,7 +206,7 @@ export function useVapiDemo() {
           const existingIdx = prev.findIndex((c) => c.type === toolName)
           if (existingIdx !== -1) {
             const updated = [...prev]
-            updated[existingIdx] = { ...updated[existingIdx], data: args, timestamp: Date.now() }
+            updated[existingIdx] = { ...updated[existingIdx], data: args, timestamp: DateTime.now().toMillis() }
             return updated
           }
           return [
@@ -215,7 +216,7 @@ export function useVapiDemo() {
               type: toolName,
               status: 'success',
               data: args,
-              timestamp: Date.now(),
+              timestamp: DateTime.now().toMillis(),
             },
           ]
         })
