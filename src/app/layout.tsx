@@ -1,4 +1,5 @@
 import { AuthProvider } from '@/context/auth-provider'
+import { Analytics } from '@vercel/analytics/next'
 import type { Metadata } from 'next'
 import { DM_Sans, Lora } from 'next/font/google'
 import { Toaster } from 'sonner'
@@ -58,6 +59,7 @@ export default function RootLayout({
           {children}
           <Toaster position="top-center" />
         </AuthProvider>
+        <Analytics />
       </body>
     </html>
   )
